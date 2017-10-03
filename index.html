@@ -3,8 +3,61 @@
 <head>
 	<meta charset="UTF-8">
 	<title>SKunq Chat</title>
+	<link rel="stylesheet" href="node_modules/normalize.css/normalize.css" />
+	<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="assets/css/sk_styles.css" />
 </head>
 <body>
 	
+	<div id="login-screen" class="shade">
+		<div class="panel">
+			<div class="panel-body text-center">
+				<h3>Hello Friend, whats your name?</h3>
+				<input type="text" id="login-input"/>
+				<button id="login-btn" class="btn btn-info">Login</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="chat-platform">
+		<section id="left">
+			<div id="profile-block">
+				
+			</div>
+			<div id="list-block">
+				<ul class="nav nav-tabs" role="tablist">
+					<li class="nav-item active">
+						<a class="nav-link" data-toggle="tab" href="#friends-tab" role="tab">
+							<span class="glyphicon glyphicon-user"></span>
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#chats-tab" role="tab">
+							<span class="glyphicon glyphicon-th-list"></span>
+						</a>
+					</li>
+				</ul>
+				<div id="list-panes" class="tab-content">
+					<div id="friends-tab" class="tab-pane show active fade in"></div>
+					<div class="tab-pane fade" id="chats-tab"></div>
+				</div>
+			</div>
+		</section>
+		<section id="main">
+			
+		</section>
+	</div>
+
+	<!-- ============================= -->
+	<!-- Libraries -->
+	<script src="node_modules/jquery/dist/jquery.min.js"></script>
+	<script src="node_modules/underscore/underscore-min.js"></script>
+	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="node_modules/async/dist/async.min.js"></script>
+	<script src="node_modules/backbone/backbone-min.js"></script>
+	
+	<!-- Scripts -->
+	<script src="scripts/main.js"></script>
+
 </body>
 </html>

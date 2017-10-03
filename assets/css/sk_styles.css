@@ -1,0 +1,90 @@
+/* GLOBAL ELEMENTS */
+
+.shade {
+	position: fixed;
+	z-index: 100;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+}
+
+
+/* MAIN LAYOUT ELEMENTS */
+
+#chat-platform {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	background: #FFFFFF;
+}
+
+#left {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 225px;
+	overflow: auto;
+	z-index: 50;
+	background: #EAFFF7;
+}
+
+#main {
+	position: absolute;
+	top: 0;
+	left: 225px;
+	right: 0;
+	bottom: 0;
+	overflow: auto;
+}
+
+
+/* LOGIN PANEL */
+
+#login-screen {
+	background: #62D732;
+}
+
+#login-screen .panel {
+	position: absolute;
+	width: 100%;
+	max-width: 500px;
+	top: 50%;
+	left: 50%;
+	transform: translate( -50%, -50% );
+}
+
+/* LEFT COLUMN */
+
+#profile-block {
+	height: 75px;
+	width: 100%;
+	border-bottom: 1px solid #E4F9F2;
+}
+
+#list-block {
+	width: 100%;
+	position: absolute;
+	top: 76px;
+	left: 0;
+	bottom: 0;
+}
+
+.friends-list {
+	list-style: none;
+	margin: 20px 0;
+	padding: 0;
+}
+
+.friends-list li {
+	cursor: pointer;
+	display: block;
+	font-size: 16px;
+	padding: 15px 20px;
+}
+.friends-list li:hover {
+	background: #9ACFF9;
+}
