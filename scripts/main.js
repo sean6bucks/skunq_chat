@@ -72,6 +72,28 @@ var Chats = Backbone.Collection.extend({
 // ====================================
 // ====================================
 
+var UserView = Backbone.View.extend({
+	tagName: 'div',
+	className: 'user-block',
+	events: {
+		'click': 'openProfile'
+	},
+	initialize: function() {
+		this.model.on( 'change', this.render, this );
+	},
+	render: function() {
+		var template = _.template( $('#userBlockTemplate').html() );
+		console.log(this.model.toJSON());
+		var html = template( this.model.toJSON() );
+		this.$el.html(html);
+
+		return this;
+	},
+	openProfile: function() {
+		console.log('Open Profile');
+		setActiveProfile( this.model.get('id') );
+	}
+});
 
 var FriendView = Backbone.View.extend({
 	tagName: 'li',
@@ -86,7 +108,7 @@ var FriendView = Backbone.View.extend({
 	openChat: function() {
 		var $this = this;
 		// TODO: CREATE LOADING SHADE ON CHATS
-		// __attachChatLoader();
+		__attachLoader('#main');
 
 		// CHECK IF ANY CHAT WITH THAT USER & CURRENT ID
 		if ( this.model.has('personal_chat_id') ) {
@@ -106,6 +128,7 @@ var FriendView = Backbone.View.extend({
 					console.log( response );
 					$this.model.set({ personal_chat_id: response.id });
 					setActiveChat( $this.model.get( 'personal_chat_id' ) );
+					__removeLoader();
 				},
 				function( response ) {
 					console.log('ERROR: ', response );
@@ -182,20 +205,27 @@ var ChatWindows = Backbone.View.extend({
 
 var current_user;
 function init() {
+	// SET USER MODEL
 	current_user = new User();
 	// ADD EVENT LISTERS MODULE TO CURRENT USER
 	_.extend( current_user, Backbone.Events );
-
 	// ADD CAHNGE LISTENER > ON CURRENT USER CHANGES, UPDATE LOCAL STORAGE VALUE 
 	current_user.on( 'change', function(){
 		if ( this.attributes ) skunq.saveLocal( this.attributes );
 	}, current_user);
 
+	// SET NAV MENU USER BLOCK VIEW
+	var userView = new UserView({
+		el: '#user-block',
+		model: current_user
+	});
+	userView.render();
+
 	// CHECK FOR EXISTING USERS AND CHATS DATA TO DETERMINE BLOCKING DATA FETCH
 	var local_user = localStorage.getItem( 'skunq_user' );
 	if ( local_user ) {
 		local_user = JSON.parse( local_user );
-		current_user.set( local_user, { silent: true } );
+		current_user.set( local_user );
 		skunq.current_id = current_user.get('id');
 		loadUserData();
 	}
@@ -244,7 +274,7 @@ function loadFriends(callback) {
 				model: friends
 			});
 			friendsView.render();
-			$('#friends-tab').html( friendsView.$el );
+			$('#friends-pane').html( friendsView.$el );
 			
 			if ( _.isFunction(callback) ) {
 				callback();
@@ -262,13 +292,6 @@ function loadChatData(callback) {
 	chats = new Chats();
 	chats.fetch({
 		success: function( response ){
-			// CREATE FRIENDS LIST VIEW FOR COLLECTION
-			// var chatWindow = new FriendsView({
-			// 	model: friends
-			// });
-			// friendsView.render();
-			// $('#friends-tab').html( friendsView.$el );
-			
 			if ( response.length ) {
 				var firstConvo = chats.at(0).get('conversation');
 				setActiveChat( firstConvo.id );
@@ -287,6 +310,8 @@ function loadChatData(callback) {
 };
 
 function setActiveChat( chatId ) {
+	// SET MAIN TO CHAT TAB PANE
+
 	var target_chat = _.find( chats.models, function(chat) {
 		var conversation = chat.get('conversation');
 		if ( conversation && conversation.id == chatId )
@@ -301,13 +326,38 @@ function setActiveChat( chatId ) {
 	} else {
 		active_chat = new Chat({ id: chatId });
 		var chatWindow = new ChatWindow({
-			el: '#main',
+			el: '#chat-pane',
 			model: active_chat
 		});
 		chatWindow.render();
 	}
 };
 
+function setActiveProfile( profileId ) {
+	// SET MAIN TO PROFILE TAB PANE
+	__switchMainPane( '#profile-pane' );
+	// SET ACTIVE PROFILE MODEL WITH USER INFO
+};
+
+// APPEND OR REMOVE LOADER SHADE
+function __attachLoader( container ) {
+	var loaderEl = $("<div>", { id: 'sk_loader' class: 'shade' });
+	loaderEl.html('<div class="loader"></div>');
+
+	if ( !container ) container = 'body';
+	$(container).append(loaderEl);
+};
+function __removeLoader() {
+	$( '#sk_loader' ).remove();
+};
+
+function __switchMainPane( tabSelector ) {
+	// DONT TRIGGER IF ALREADY ACTIVE
+	if ( $(tabSelector).hasClass('active') ) return;
+	// HANDLE MAIN PANE SWITCH WITHOUT NAV TAB ELEMENTS
+	$('#main .tab-pane').removeClass('active');
+	$(tabSelector).addClass('active');
+}
 
 
 // EVENT LISTENERS
@@ -316,5 +366,6 @@ $( '#login-btn' ).on( 'click', setUser );
 // $('.friend-item').on( 'dblclick', new )
 
 $( document ).ready( function() {
+
 	init();
 });

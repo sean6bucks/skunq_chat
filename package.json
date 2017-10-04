@@ -2,9 +2,9 @@
   "name": "skunq_chat",
   "version": "0.0.1",
   "description": "Front-end only chat app built on BackboneJS",
-  "main": "index.html",
-  ""
+  "main": "index.js",
   "scripts": {
+  	"start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sean Kiefer",
@@ -18,5 +18,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sean6bucks/skunq_chat.git"
-  },
+  }
 }

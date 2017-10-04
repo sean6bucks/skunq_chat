@@ -1,4 +1,4 @@
-/* GLOBAL ELEMENTS */
+/* SHARED ELEMENTS */
 
 ul {
 	list-style: none;
@@ -6,7 +6,6 @@ ul {
 }
 
 .shade {
-	position: fixed;
 	z-index: 100;
 	top: 0;
 	left: 0;
@@ -43,13 +42,14 @@ ul {
 	left: 225px;
 	right: 0;
 	bottom: 0;
-	overflow: auto;
+	overflow: hidden;
 }
 
 
 /* LOGIN PANEL */
 
 #login-screen {
+	position: fixed;
 	background: #62D732;
 }
 
@@ -64,16 +64,44 @@ ul {
 
 /* LEFT COLUMN */
 
-#profile-block {
-	height: 75px;
+#user-block {
+	height: 54px;
 	width: 100%;
 	border-bottom: 1px solid #E4F9F2;
+}
+
+.user-name {
+	float: left;
+	display: inline-block;
+	height: 54px;
+	width: 155px;
+	padding: 0 0 0 15px;
+	line-height: 54px;
+	font-size: 18px;
+	overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.user-avatar {
+	display: inline-block;
+	float: left;
+	width: 40px;
+	height: 40px;
+	margin: 7px 10px;
+	border-radius: 50%;
+	background-color: #fff;
+	overflow: hidden;
+	vertical-align: top;
+}
+.user-avatar img {
+	width: 100%;
+	height: auto;
 }
 
 #list-block {
 	width: 100%;
 	position: absolute;
-	top: 76px;
+	top: 55px;
 	left: 0;
 	bottom: 0;
 }
@@ -93,6 +121,23 @@ ul {
 }
 
 /* MAIN VIEW */
+#profile-pane,
+#chat-pane {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	overflow: auto;
+}
+
+#profile-pane {
+	background: purple;
+}
+
+#chat-pane {
+	background: blue;
+}
 
 .chat-window {
 	position: absolute;
@@ -173,4 +218,81 @@ ul {
 	border: 2px solid #666;
 	border-left: none;
 	padding: 0 10px;
+}
+
+
+
+
+
+
+
+
+/* Loader */
+
+.sk_loader {
+    position: absolute;
+}
+.loader {
+    display: block;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #9370DB;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+.loader:before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #BA55D3;
+    -webkit-animation: spin 3s linear infinite;
+    animation: spin 3s linear infinite;
+}
+.loader:after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #FF00FF;
+    -webkit-animation: spin 1.5s linear infinite;
+    animation: spin 1.5s linear infinite;
+}
+@-webkit-keyframes spin {
+    0%   {
+        -webkit-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+@keyframes spin {
+    0%   {
+        -webkit-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
 }

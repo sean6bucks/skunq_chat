@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<title>SKunq Chat</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="stylesheet" href="node_modules/normalize.css/normalize.css" />
 	<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="assets/css/sk_styles.css" />
@@ -21,9 +24,7 @@
 
 	<div id="chat-platform">
 		<section id="left">
-			<div id="profile-block">
-				
-			</div>
+			<div id="user-block"></div>
 			<div id="list-block">
 				<ul class="nav nav-tabs" role="tablist">
 					<li class="nav-item active">
@@ -38,13 +39,14 @@
 					</li>
 				</ul>
 				<div id="list-panes" class="tab-content">
-					<div id="friends-tab" class="tab-pane show active fade in"></div>
-					<div class="tab-pane fade" id="chats-tab"></div>
+					<div id="friends-pane" class="tab-pane show active fade in"></div>
+					<div id="chats-pane" class="tab-pane fade"></div>
 				</div>
 			</div>
 		</section>
-		<section id="main">
-
+		<section id="main" class="tab-content">
+			<div id="profile-pane" class="tab-pane"></div>
+			<div id="chat-pane" class="tab-pane active"></div>
 		</section>
 	</div>
 
@@ -54,7 +56,16 @@
 	<script src="node_modules/underscore/underscore-min.js"></script>
 	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 	<script src="node_modules/async/dist/async.min.js"></script>
+	<script src="node_modules/handlebars/dist/handlebars.min.js"></script>
+
 	<script src="node_modules/backbone/backbone-min.js"></script>
+	
+	<!-- Scripts -->
+	<script src="index.js"></script>
+	<script src="scripts/main.js"></script>
+	<script src="scripts/router.js"></script>
+
+	<!-- TEMPLATES > TO BE MOVED TO EXTERNALS -->
 
 	<script id="chatTemplate" type="text/html">
 		<div class="chat-window">
@@ -72,9 +83,23 @@
 			<span class="send-btn btn">SEND</span>
 		</div>
 	</script>
-	
-	<!-- Scripts -->
-	<script src="scripts/main.js"></script>
+
+	<script id="userBlockTemplate" type="text/html">
+		<span class="user-name"><%= display_name %></span>
+		<div class="user-avatar">
+			<img src="<%= avatar %>"/>
+		</div>
+	</script>
+
+	<script id="userProfileTemplate" type="text/html">
+		<div class="profile-wrapper">
+			<img class="profile-avatar" src="<%= avatar %>" />
+			<h3 class="text-center"><%= display_name %><span class="glyphicon glypicon-pencil"></span></h3>
+			<button class="btn btn-success">CHAT</button>
+		</div>
+	</script>
+
+	<!-- END TEMPLATES -->
 
 </body>
 </html>
