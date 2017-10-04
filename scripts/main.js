@@ -77,29 +77,43 @@ var FriendView = Backbone.View.extend({
 	tagName: 'li',
 	className: 'friend-item',
 	events: {
-		'dblclick': 'startChat'
+		'dblclick': 'openChat'
 	},
 	render: function() {
 		this.$el.html( this.model.get('display_name') );
 		return this;
 	},
-	startChat: function() {
-		console.log('New Chat', this.model);
-		var users = [ this.model.get('id'), skunq.current_id ];
-		$.ajax({
-			method: 'POST',
-			url: BaseUrl + '/conversation/personal',
-			data: {
-				users: users.join(',')
-			}
-		}).then(
-			function( response ) {
-				console.log(response);
-			},
-			function( response ) {
-				console.log('ERROR: ', response );
-			}
-		)
+	openChat: function() {
+		var $this = this;
+		// TODO: CREATE LOADING SHADE ON CHATS
+		// __attachChatLoader();
+
+		// CHECK IF ANY CHAT WITH THAT USER & CURRENT ID
+		if ( this.model.has('personal_chat_id') ) {
+		// IF CHAT FOUND SET AS ACTIVE CHAT WINDOW
+			setActiveChat( this.model.get( 'personal_chat_id' ) );
+		} else {
+		// IF NOT CREATE NEW CHAT IN BACKEND
+			var users = [ this.model.get('id'), skunq.current_id ];
+			$.ajax({
+				method: 'POST',
+				url: BaseUrl + '/conversation/personal',
+				data: {
+					users: users.join(',')
+				}
+			}).then(
+				function( response ) {
+					console.log( response );
+					$this.model.set({ personal_chat_id: response.id });
+					setActiveChat( $this.model.get( 'personal_chat_id' ) );
+				},
+				function( response ) {
+					console.log('ERROR: ', response );
+				}
+			)
+		}
+
+		// SWITCH TO CHATS TAB & SET CHAT LIST ITEM AS ACTIVE
 	}
 });
 
@@ -118,8 +132,14 @@ var FriendsView = Backbone.View.extend({
 var ChatWindow = Backbone.View.extend({
 	tagName: 'div',
 	className: 'chat-window',
+	initialize: function() {
+		this.model.on( 'change', this.render, this );
+	},
 	render: function() {
-		var $this = this;
+		var template = _.template($('#chatTemplate').html());
+		var html = template(this.model.toJSON());
+		this.$el.html(html);
+
 		return this;
 	}
 });
@@ -132,44 +152,6 @@ var ChatWindows = Backbone.View.extend({
 		return this;
 	}
 });
-
-
-
-
-
-
-
-
-// ==== ON LOGIN CREATE USER WITH DATASETS FOR VIEWS
-
-
-
-// ==== POSSIBLE COLLECTIONS AND MODELS
-
-// USERS
-// USER 
-// status, display name, last login, chats?
-
-// CHATS
-// CHAT
-// id #, users, messages, last time checked
-
-// MESSAGES
-// MESSAGE
-// author, time sent, text
-
-
-// ==== FUNCTIONS FOR USER ACTIONS
-
-// CREATE NEW CHAT - SET CHATEE PROFILE AND MESSAGES ARRAY
-
-// CREATE GROUP CHAT - SET DIFFERENT USERS AND MESSAGES ARRAY
-
-
-
-// ++++++++++ FUNCTIONS
-
-
 
 
 
@@ -192,118 +174,147 @@ var ChatWindows = Backbone.View.extend({
 // };
 
 
-$( document ).ready( function() {
 
-	var current_user;
-	function init() {
-		current_user = new User();
-		// ADD EVENT LISTERS MODULE TO CURRENT USER
-		_.extend( current_user, Backbone.Events );
+// ===== App Functions ================
+// ====================================
+// ====================================
+// ====================================
 
-		// ADD CAHNGE LISTENER > ON CURRENT USER CHANGES, UPDATE LOCAL STORAGE VALUE 
-		current_user.on( 'change', function(){
-			if ( this.attributes ) skunq.saveLocal( this.attributes );
-		}, current_user);
+var current_user;
+function init() {
+	current_user = new User();
+	// ADD EVENT LISTERS MODULE TO CURRENT USER
+	_.extend( current_user, Backbone.Events );
 
-		// CHECK FOR EXISTING USERS AND CHATS DATA TO DETERMINE BLOCKING DATA FETCH
-		var local_user = localStorage.getItem( 'skunq_user' );
-		if ( local_user ) {
-			local_user = JSON.parse( local_user );
-			current_user.set( local_user, { silent: true } );
-			skunq.current_id = current_user.get('id');
-			loadUserData();
-		}
-	};
+	// ADD CAHNGE LISTENER > ON CURRENT USER CHANGES, UPDATE LOCAL STORAGE VALUE 
+	current_user.on( 'change', function(){
+		if ( this.attributes ) skunq.saveLocal( this.attributes );
+	}, current_user);
 
-	function setUser() {
-		var display_name = $('#login-input').val();
-		if ( !display_name ) {
-			// SHOW ERROR
-			console.log('no display name given');
-		} else {
-			// USE CURRENT TIMESTAMP AS A SUMPLE UNQIUE ID
-			current_user.set({ 
-				display_name: display_name,
-				id: Date.now()
-			});
-			// SET CURRENT ID GLOBALLY
-			skunq.current_id = current_user.get('id');
-			loadUserData();
-		}
+	// CHECK FOR EXISTING USERS AND CHATS DATA TO DETERMINE BLOCKING DATA FETCH
+	var local_user = localStorage.getItem( 'skunq_user' );
+	if ( local_user ) {
+		local_user = JSON.parse( local_user );
+		current_user.set( local_user, { silent: true } );
+		skunq.current_id = current_user.get('id');
+		loadUserData();
 	}
+};
 
-	var friends, chats;
-	function loadUserData() {
-		async.parallel([
-			function(done){
-				loadFriends( function(){
-					done();
-				});
-			},
-			function(done) {
-				loadChatData( function(){
-					done();
-				});
-			}
-		], function() {
-			$('#login-screen').remove();
+function setUser() {
+	var display_name = $('#login-input').val();
+	if ( !display_name ) {
+		// SHOW ERROR
+		console.log('no display name given');
+	} else {
+		// USE CURRENT TIMESTAMP AS A SUMPLE UNQIUE ID
+		current_user.set({ 
+			display_name: display_name,
+			id: Date.now()
 		});
-	};
-	function loadFriends(callback) {
-		friends = new Users();
-		friends.fetch({
-			success: function( response ){
-				// CREATE FRIENDS LIST VIEW FOR COLLECTION
-				var friendsView = new FriendsView({
-					model: friends
-				});
-				friendsView.render();
-				$('#friends-tab').html( friendsView.$el );
-				
-				if ( _.isFunction(callback) ) {
-					callback();
-				}
-			},
-			error: function(response){
-				console.log( '%cErrors', 'background:red;', response );
-				if ( _.isFunction(callback) ) {
-					callback();
-				}
+		// SET CURRENT ID GLOBALLY
+		skunq.current_id = current_user.get('id');
+		loadUserData();
+	}
+}
+
+var friends, chats, active_chat;
+function loadUserData() {
+	async.parallel([
+		function(done){
+			loadFriends( function(){
+				done();
+			});
+		},
+		function(done) {
+			loadChatData( function(){
+				done();
+			});
+		}
+	], function() {
+		$('#login-screen').remove();
+	});
+};
+function loadFriends(callback) {
+	friends = new Users();
+	friends.fetch({
+		success: function( response ){
+			// CREATE FRIENDS LIST VIEW FOR COLLECTION
+			var friendsView = new FriendsView({
+				model: friends
+			});
+			friendsView.render();
+			$('#friends-tab').html( friendsView.$el );
+			
+			if ( _.isFunction(callback) ) {
+				callback();
 			}
-		});
-	};
-	function loadChatData(callback) {
-		chats = new Chats();
-		chats.fetch({
-			success: function( response ){
-				// CREATE FRIENDS LIST VIEW FOR COLLECTION
-				// var chatWindow = new FriendsView({
-				// 	model: friends
-				// });
-				// friendsView.render();
-				// $('#friends-tab').html( friendsView.$el );
-				
-				console.log(chats);
-				if ( _.isFunction(callback) ) {
-					callback();
-				}
-			},
-			error: function(response){
-				console.log( '%cErrors', 'background:red;', response );
-				if ( _.isFunction(callback) ) {
-					callback();
-				}
+		},
+		error: function(response){
+			console.log( '%cErrors', 'background:red;', response );
+			if ( _.isFunction(callback) ) {
+				callback();
 			}
+		}
+	});
+};
+function loadChatData(callback) {
+	chats = new Chats();
+	chats.fetch({
+		success: function( response ){
+			// CREATE FRIENDS LIST VIEW FOR COLLECTION
+			// var chatWindow = new FriendsView({
+			// 	model: friends
+			// });
+			// friendsView.render();
+			// $('#friends-tab').html( friendsView.$el );
+			
+			if ( response.length ) {
+				var firstConvo = chats.at(0).get('conversation');
+				setActiveChat( firstConvo.id );
+			}
+			if ( _.isFunction(callback) ) {
+				callback();
+			}
+		},
+		error: function(response){
+			console.log( '%cErrors', 'background:red;', response );
+			if ( _.isFunction(callback) ) {
+				callback();
+			}
+		}
+	});
+};
+
+function setActiveChat( chatId ) {
+	var target_chat = _.find( chats.models, function(chat) {
+		var conversation = chat.get('conversation');
+		if ( conversation && conversation.id == chatId )
+			return true;
+	});
+	if ( target_chat ) {
+		// ADD FALLBACK INCASE CHAT CREATED BY ACTIVE CHAT NOT CREATED YET
+		if ( active_chat )
+			active_chat.set( target_chat.attributes );
+		else
+			active_chat = new Chat( target_chat.attributes );
+	} else {
+		active_chat = new Chat({ id: chatId });
+		var chatWindow = new ChatWindow({
+			el: '#main',
+			model: active_chat
 		});
-	};
+		chatWindow.render();
+	}
+};
 
 
 
-	// EVENT LISTENERS
-	$( '#login-btn' ).on( 'click', setUser );
+// EVENT LISTENERS
+$( '#login-btn' ).on( 'click', setUser );
 
-	// $('.friend-item').on( 'dblclick', new )
+// $('.friend-item').on( 'dblclick', new )
 
+$( document ).ready( function() {
 	init();
-
 });

@@ -44,7 +44,7 @@
 			</div>
 		</section>
 		<section id="main">
-			
+
 		</section>
 	</div>
 
@@ -55,6 +55,23 @@
 	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 	<script src="node_modules/async/dist/async.min.js"></script>
 	<script src="node_modules/backbone/backbone-min.js"></script>
+
+	<script id="chatTemplate" type="text/html">
+		<div class="chat-window">
+			<ul class="conversation">
+				<li class="user-text">
+					<span class="msg-text">Hey BUDDY!</span>
+				</li>
+				<li class="friend-text">
+					<span class="msg-text">Hey, Long time now speak!</span>
+				</li>
+			</ul>
+		</div>
+		<div class="message-bar">
+			<textarea class="message-input"></textarea>
+			<span class="send-btn btn">SEND</span>
+		</div>
+	</script>
 	
 	<!-- Scripts -->
 	<script src="scripts/main.js"></script>
