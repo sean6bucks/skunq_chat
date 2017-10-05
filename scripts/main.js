@@ -1,16 +1,16 @@
 'use strict'
 
-// TODO: MOVE TO A MODULE SYSTEM
 // CREATE GLOBAL UTIL FUNCTIONS
 const skunq = {
+	// ADD AND REMOVE USER DATA TO LOCAL FOR QUICK LOGIN
 	saveLocal: function( attrs ) {
 		if ( attrs ) {
 			localStorage.setItem( 'skunq_user', JSON.stringify( attrs ) );
 		}
 	},
+	// REMOVE ON LOGOUT
 	deleteLocal: function() {
 		localStorage.removeItem( 'skunq_user' );
-		console.log( localStorage );
 	},
 	colors: [ '#288542', '#329a43', '#5eb24c', '#7fc450', '#41b19d', '#388abf', '#2c68a6', '#205576', '#822330', '#be1a2e', '#d37527', '#d9b837' ]
 };
@@ -75,9 +75,6 @@ var Chats = Backbone.Collection.extend({
 
 
 
-
-
-
 // ===== VIEWS ========================
 // ====================================
 // ====================================
@@ -95,7 +92,6 @@ var UserView = Backbone.View.extend({
 		this.model.on( 'change', this.render, this );
 	},
 	render: function() {
-		console.log(this.model);
 		if ( !this.model || !this.model.has('id') ) return;
 		var template = _.template( $('#userBlockTemplate').html() );
 		var html = template( this.model.toJSON() );
@@ -105,6 +101,7 @@ var UserView = Backbone.View.extend({
 	},
 	openProfile: function() {
 		setActiveProfile( this.model );
+		__shiftView();
 	}
 });
 
@@ -132,6 +129,7 @@ var FriendView = Backbone.View.extend({
 	},
 	openProfile: function() {
 		setActiveProfile( this.model );
+		__shiftView();
 	}
 });
 
@@ -174,6 +172,7 @@ var ChatView = Backbone.View.extend({
 		var $this = this;
 		// SET MAIN WINDOW WITH CHAT
 		setActiveChat( this.model.get('id') );
+		__shiftView();
 	}
 });
 
@@ -236,7 +235,8 @@ var SelectUserView = Backbone.View.extend({
 
 var CreateChatView = Backbone.View.extend({
 	events: {
-		'click #create-chat-btn': 'createChat'
+		'click #create-chat-btn': 'createChat',
+		'keydown': 'keyPress'
 	},
 	initialize: function() {
 		var $this = this;
@@ -267,11 +267,16 @@ var CreateChatView = Backbone.View.extend({
 
 		return this;
 	},
+	keyPress: function(e){
+		if ( e.which === 13 ) {
+			this.createChat();
+		}
+	},
 	createChat: function() {
 		var $this = this;
 		$('#create-chat-name').removeClass('has-error');
 		// CREATE GROUP CHAT WITH SELECTED USERS
-		__attachLoader();
+		__attachLoader( '#main' );
 
 		// ATTACH USER IDS
 		var data = {
@@ -304,13 +309,14 @@ var CreateChatView = Backbone.View.extend({
 			// IF CHAT FOUND SET AS ACTIVE CHAT WINDOW
 			if ( chat_friend.has( 'personal_chat_id' ) ) {
 				$('#create-chat-modal').modal('hide');
-				setActiveChat( this.model.get('personal_chat_id') );
+				setActiveChat( chat_friend.get('personal_chat_id') );
+				__shiftView();
+				__removeLoader();
 				return;
 			}
 		}
+
 		// IF NOT CHAT EXISTS > CREATE NEW
-		
-		// FORMAT USER IDS TO STRING 
 		// ADD CURRENT USER ID TO USERS ARRAY
 		data.users.push( skunq.current_id );
 		// FORMAT USER IDS TO STRING 
@@ -324,21 +330,33 @@ var CreateChatView = Backbone.View.extend({
 		}).then(
 			function( response ) {
 				var attrs = { id: response.id, new_message: false };
-				if ( personal_chat ) {
-					friend.set({ personal_chat_id: response.id });
-					_.extend( attrs, {
-						display_name: chat_friend.get( 'display_name' ),
-						avatar: chat_friend.get( 'avatar' ),
-					});
-				} else {
-					_.extend( attrs, {
-						display_name: data.name,
-						avatar: 'assets/images/group_avatar.png',
-					});
-				}
-				chats.add( attrs );
-				$('#create-chat-modal').modal('hide');
-				setActiveChat( attrs.id );
+				$.ajax({
+					method: 'GET',
+					url: BaseUrl + '/conversation/' + response.id
+				}).then(
+					function( response ) {
+						if ( personal_chat ) {
+							chat_friend.set({ personal_chat_id: response.id });
+							_.extend( attrs, {
+								display_name: chat_friend.get( 'display_name' ),
+								avatar: chat_friend.get( 'avatar' ),
+							}, response );
+						} else {
+							_.extend( attrs, {
+								display_name: data.name,
+								avatar: 'assets/images/group_avatar.png',
+							}, response );
+						}
+
+						chats.add( attrs );
+						$('#create-chat-modal').modal('hide');
+						setActiveChat( attrs.id );
+						__shiftView();
+					},
+					function() {
+						console.log('ERROR: ', response );
+					}
+				);
 			},
 			function( response ) {
 				console.log('ERROR: ', response );
@@ -363,20 +381,53 @@ var ChatWindowView = Backbone.View.extend({
 	className: 'chat-window',
 	events: {
 		"click .send-btn": "sendMessage",
-		"keydown": "checkFocus"
+		"keydown": "keyPress"
 	},
 	initialize: function() {
+		var $this = this;
+		this.render = _.wrap( this.render, function( render ) {
+			render.apply(this);						
+			$this.afterRender();
+		});
+		this.render();
+
 		this.model.on( 'change', this.render, this );
 	},
 	render: function() {
 		var $this = this;
 		var template = _.template( $('#chatWindowTemplate').html() );
-		var html = template( $this.model.attributes );
-		this.$el.html( html );
 
+		var users = this.model.get('users');
+		var user_info = {};
+		if ( !users || !users.length ){
+			user_info[current_user.get('id')] = current_user.attributes;
+		// SET USER INFO OBJECT FOR ALL USERS IN MESSAGE
+		} else {
+			_.each( users, function( user ){
+				if ( user.userid == current_user.get('id') ) {
+					user_info[ user.userid ] = current_user.attributes;
+				} else {
+					var friend = friends.get( user.userid );
+					user_info[ user.userid ] = friend.attributes;
+				}
+			});
+		}
+
+		var html = template( _.extend( { user_info: user_info }, $this.model.attributes ) );
+
+		this.$el.html( html );
 		return this;
 	},
-	checkFocus: function(e){
+	afterRender: function() {
+		// SET MAX HEIGHT WITH SCROLL FOR BOTTOM SET CHAT EFFECT
+		var height = $('.conversation').height();
+		var max_height = $('.chat-window').height();
+		if ( height > 0 && height >= max_height - 78 ) {
+			$('.conversation').height( max_height - 118 ); /* bottom + padding */
+			$('.conversation').scrollTop( $('.conversation')[0].scrollHeight );
+		}
+	},
+	keyPress: function(e){
 		if ( e.which === 13 ) {
 			this.sendMessage();
 		}
@@ -408,7 +459,7 @@ var ChatWindowView = Backbone.View.extend({
 			data: new_message
 		}).then(
 			function( response ) {
-				$('.message-input').val('');
+				$('.message-input').val('')
 				var messages = _.clone( $this.model.get('messages') );
 				var msgIndex = _.indexOf( messages, new_message );
 
@@ -457,10 +508,36 @@ var ProfileWindowView = Backbone.View.extend({
 	},
 	createChat: function() {
 		var $this = this;
+
+		function getConversation( id ) {
+			$.ajax({
+				method: 'GET',
+				url: BaseUrl + '/conversation/' + id
+			}).then(
+				function( response ) {
+					var attrs = { id: id, new_message: false };
+					$this.model.set({ 
+						personal_chat_id: id 
+					});
+					_.extend( attrs, {
+						display_name: $this.model.get( 'display_name' ),
+						avatar: $this.model.get( 'avatar' ),
+					}, response );
+					
+					chats.add( attrs );
+					$('#create-chat-modal').modal('hide');
+					setActiveChat( attrs.id );
+				},
+				function() {
+					console.log('ERROR: ', response );
+				}
+			);
+		};
 		// CHECK IF ANY CHAT WITH THAT USER & CURRENT ID
 		if ( this.model.has('personal_chat_id' ) ) {
 		// IF CHAT FOUND SET AS ACTIVE CHAT WINDOW
-			setActiveChat( this.model.get('personal_chat_id') );
+			getConversation( this.model.get('personal_chat_id') )
+			// setActiveChat( this.model.get('personal_chat_id') );
 		} else {
 		// IF NOT CREATE NEW PERSONAL CHAT IN BACKEND
 			__attachLoader( '#main' );
@@ -474,14 +551,7 @@ var ProfileWindowView = Backbone.View.extend({
 				}
 			}).then(
 				function( response ) {
-					$this.model.set({ personal_chat_id: response.id });
-					chats.add({
-						id: response.id,
-						display_name: $this.model.get( 'display_name' ),
-						avatar: $this.model.get( 'avatar' ),
-						new_message: false
-					});
-					setActiveChat( $this.model.get( 'personal_chat_id' ) );
+					getConversation( response.id );
 				},
 				function( response ) {
 					console.log('ERROR: ', response );
@@ -742,6 +812,9 @@ function setActiveChat( chatId ) {
 	_.each( chats.models, function( chat ) {
 		chat.set({ active: false });
 	});
+	_.each( friends.models, function( friend ) { 
+		friend.set({ active: false }); 
+	});
 	
 	// GET CHATS LATEST MESSAGES OR ALL MESSAGES
 	var last_message_id = chatWindowView.model.get('last_message');
@@ -796,6 +869,14 @@ function setActiveProfile( user ) {
 	__attachLoader( '#main' );
 	__switchPanes( 'friends' );
 
+	// RESET ALL LIST ITEMS ACTIVE STATUS
+	_.each( friends.models, function( friend ) { 
+		friend.set({ active: false }); 
+	});
+	_.each( chats.models, function( chat ) {
+		chat.set({ active: false });
+	});
+
 	// IF CHAT CURRENTLY ACTIVE UNDELEGATE EVENTS AND CLEAR EL
 	if ( profileWindowView ) profileWindowView.cleanup();
 	// RENDER CHAT WINDOW
@@ -804,11 +885,6 @@ function setActiveProfile( user ) {
 		model: user
 	});
 	profileWindowView.render();
-
-	// RESET ALL LIST ITEMS ACTIVE STATUS
-	_.each( friends.models, function( friend ) { 
-		friend.set({ active: false }); 
-	});
 
 	profileWindowView.model.set({ active: true });
 	
@@ -957,7 +1033,10 @@ function __attachLoader( container ) {
 	$(container).append(loaderEl);
 };
 function __removeLoader() {
-	$( '#sk_loader' ).remove();
+	// ADD HALF A SECOND TO PREVENT ANY INSTANT ADD/REMOVE FLICKER
+	setTimeout( function(){ 
+		$( '#sk_loader' ).remove();
+	}, 500);
 };
 
 function __switchPanes( type ) {
@@ -982,6 +1061,11 @@ function __switchPanes( type ) {
 	$( paneSelector ).addClass('active');
 };
 
+function __shiftView() {
+	$( '#chat-platform' ).toggleClass('shifted');
+	$( '#mobile-menu-btn' ).toggleClass('fa-rotate-180');
+};
+
 function __createAlert( options ) {
 	var message = options.message || 'Error',
 		type = options.type || 'danger';
@@ -1000,4 +1084,5 @@ $( document ).ready( function() {
 	// BUILD LOADER SHADE THEN INIT APP
 	__buildLoginShade( init );
 	$( '#login-btn' ).on( 'click', login );
+	$( '#mobile-menu-btn' ).on( 'click', __shiftView );
 });

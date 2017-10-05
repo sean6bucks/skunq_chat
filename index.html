@@ -13,6 +13,8 @@
 </head>
 <body>
 	
+	<div id="mobile-menu-btn"><i class="fa fa-chevron-circle-right"></i></div>
+
 	<div id="create-chat-modal" class="modal fade">
 		<div class="modal-dialog">
 			<div class="panel">
@@ -31,7 +33,7 @@
 			<div class="panel-body text-center">
 				<h3>Welcome to SKunq Chat</h3>
 				<div class="input-group">
-					<input type="text" placeholder="whats your name?" class="form-control" id="login-input"/>
+					<input type="text" placeholder="what's your name?" class="form-control" id="login-input"/>
 					<span class="input-group-btn">
 						<button id="login-btn" class="btn btn-info">Login</button>
 					</span>
@@ -52,7 +54,7 @@
 					</li>
 					<li class="nav-item ">
 						<a id="friends-tab" class="nav-link" data-toggle="tab" href="#friends-nav" role="tab">
-							<i class="fa fa-users"></i>
+							<i class="fa fa-address-book-o"></i>
 						</a>
 					</li>
 				</ul>
@@ -142,6 +144,13 @@
 				<% } else { %>
 				<li class="friend-text">
 				<% } %>
+					<div class="item-avatar">
+					<% if ( user_info[message.senderId].avatar ) { %>
+						<img src="<%= user_info[message.senderId].avatar %>"/>
+					<% } else { %>
+						<img src="assets/images/no_avatar.png"/>
+					<% } %>
+					</div>
 					<p class="msg-text"><%= message.message %></p>
 					<% if ( message.timestamp ) { %>
 					<p class="subtext text-secondary">Sent at <%= message.timestamp %></p>
