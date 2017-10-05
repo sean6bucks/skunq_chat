@@ -223,13 +223,21 @@ var ChatView = Backbone.View.extend({
 			}).then(
 				function( response ) {
 					if ( response && response.length ) {
-						var messages = $this.model.get('messages').concat( response );
-						var last_message = _.last(messages).id;
-						$this.model.set({
-							messages: messages,
-							last_message: last_message,
-							new_message: true
-						});
+						var attrs = {}
+						if ( $this.model.get('active') ) {
+							var messages = $this.model.get('messages').concat( response );
+							var last_message = _.last(messages).id;
+							attrs = {
+								messages: messages,
+								last_message: last_message
+							}
+						} else {
+							attrs = {
+								new_message: true
+							}
+						}
+
+						$this.model.set( attrs );
 					}
 					setTimeout( function(){
 						$this.checkMessages();
@@ -464,7 +472,7 @@ var ChatWindowView = Backbone.View.extend({
 		});
 		this.render();
 
-		this.model.on( 'change', this.render, this );
+		this.model.on( 'change:messages change:active', this.render, this );
 	},
 	render: function() {
 		var $this = this;
@@ -544,6 +552,8 @@ var ChatWindowView = Backbone.View.extend({
 					last_message: response.id
 				});
 				$this.model.trigger('change', $this.model);
+
+				__sendFakeResponse( $this.model );
 			},
 			function( response ) {
 				console.log( '%cErrors', 'background:red;', response );
@@ -889,7 +899,7 @@ function setActiveChat( chatId ) {
 	
 	// GET CHATS LATEST MESSAGES OR ALL MESSAGES
 	var last_message = chatWindowView.model.get('last_message');
-
+	chatWindowView.model.set({ active: true });
 	if ( chatWindowView.model.get('last_message') ) {
 		$.ajax({
 			method: 'GET',
@@ -900,7 +910,6 @@ function setActiveChat( chatId ) {
 					var messages = chatWindowView.model.get('messages').concat( response );
 					var last_message = _.last(messages).id;
 					chatWindowView.model.set({
-						active: true,
 						new_message: false,
 						messages: messages,
 						last_message: last_message
@@ -913,7 +922,7 @@ function setActiveChat( chatId ) {
 			function( response ) {
 				if ( last_message ) {
 					chatWindowView.model.set({
-						active: true,
+						new_message: false
 					});
 				} else {
 					console.log( '%cErrors', 'background:red;', response );
@@ -923,12 +932,26 @@ function setActiveChat( chatId ) {
 			}
 		);
 	} else {
-		chatWindowView.model.set({
-			active: true,
-		});
 		__switchPanes( 'chat' );
 		__removeLoader();
 	}
+};
+
+// FUNCTION TO FAKE RESPONSE MESSAGE AFTER YOU MESSAGE SOMEONE
+function __sendFakeResponse( chat ) {
+	var friend_id = _.find( chat.get('users'), function( user ) {
+		return user != current_user.id;
+	}).userid;
+
+	$.ajax({
+		method: 'POST',
+		url: BaseUrl + '/conversation/' + chat.get('id') + '/message/send',
+		data: {
+			message: 'OK, sure.' + Date.now(),
+			senderId: friend_id
+		}
+	});
+
 };
 
 
