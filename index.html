@@ -145,7 +145,8 @@
 				<li class="friend-text">
 				<% } %>
 					<div class="item-avatar">
-					<% if ( user_info[message.senderId].avatar ) { %>
+					<% if ( user_info[message.senderId] && 
+							user_info[message.senderId].avatar ) { %>
 						<img src="<%= user_info[message.senderId].avatar %>"/>
 					<% } else { %>
 						<img src="assets/images/no_avatar.png"/>

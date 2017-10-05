@@ -62,7 +62,7 @@ h1, h2, h3, h4, h5, p {
 	margin-right: 0;
 	border: none;
 	border-radius: 0;
-	color: #ccc;
+	color: #999;
 	border-color: #ccc;
 	transition: color .2s ease;
 	border-bottom: 1px solid #ccc;
@@ -170,7 +170,7 @@ h1, h2, h3, h4, h5, p {
 
 #login-bars {
 	opacity: 0;
-	transition: opacity 1s ease;
+	transition: opacity .6s ease;
 }
 
 #login-panel {
@@ -220,6 +220,7 @@ h1, h2, h3, h4, h5, p {
 	padding: 0 0 0 15px;
 	line-height: 54px;
 	font-size: 18px;
+	font-weight: 300;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -313,6 +314,17 @@ h1, h2, h3, h4, h5, p {
 	text-overflow: ellipsis;
 }
 
+.item-badge {
+	display: inline-block;
+    position: absolute;
+    right: 10px;
+    height: 10px;
+    width: 10px;
+    margin: 16px 0;
+    background: #16B6F9;
+    border-radius: 50%;
+}
+
 
 /* NEW CHAT BUTTON */
 
@@ -326,7 +338,7 @@ h1, h2, h3, h4, h5, p {
 	border: none;
 	border-top: 1px solid #ccc;
 	background: #fff;
-	color: #ccc;
+	color: #777;
 	font-size: 18px;
 	line-height: 54px;
 	text-align: left;

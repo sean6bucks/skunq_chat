@@ -156,7 +156,9 @@ var ChatView = Backbone.View.extend({
 		'click': 'openChat'
 	},
 	initialize: function() {
+		var $this = this;
 		this.model.on( 'change', this.render, this );
+		this.loadMessages();
 	},
 	render: function() {
 		var template = _.template( $('#listItemTemplate' ).html() );
@@ -169,10 +171,81 @@ var ChatView = Backbone.View.extend({
 		return this;
 	},
 	openChat: function() {
-		var $this = this;
 		// SET MAIN WINDOW WITH CHAT
 		setActiveChat( this.model.get('id') );
 		__shiftView();
+	},
+	loadMessages: function() {
+		var $this = this;
+
+		if ( this.model && this.model.get('id') ) {
+			$.ajax({
+				method: 'GET',
+				url: BaseUrl + '/conversation/' + this.model.get('id') + '/message/limited?limit=50&offset=0'
+			}).then(
+				function( response ) {
+					if ( response.length ) {
+						var messages = response.reverse();
+						$this.model.set({
+							messages: messages,
+							last_message: _.last( messages ).id
+						});
+					}
+
+					setTimeout( function(){
+						$this.checkMessages();
+					}, 3000 );
+				},
+				function( response ) {
+					if ( $this.model.get( 'last_message' ) ) {
+						$this.model.set({
+							messages: $this.model.get('messages'),
+						});
+						setTimeout( function(){
+							$this.checkMessages();
+						}, 3000 );
+					} else {
+						console.log( '%cErrors', 'background:red;', response );
+					}
+				}
+			);
+		} else {
+			setTimeout( function() { $this.loadMessages() }, 200 );
+		}
+	},
+	checkMessages: function() {
+		var $this = this;
+		if ( !current_user || !current_user.get('id') ) return;
+		if ( this.model && this.model.get('last_message') ) {
+			$.ajax({
+				method: 'GET',
+				url: BaseUrl + '/conversation/' + $this.model.get('id') + '/new/' + $this.model.get('last_message' )
+			}).then(
+				function( response ) {
+					if ( response && response.length ) {
+						var messages = $this.model.get('messages').concat( response );
+						var last_message = _.last(messages).id;
+						$this.model.set({
+							messages: messages,
+							last_message: last_message,
+							new_message: true
+						});
+					}
+					setTimeout( function(){
+						$this.checkMessages();
+					}, 5000 );
+				},
+				function( response ) {
+					setTimeout( function(){
+						$this.checkMessages();
+					}, 5000 );
+				}
+			);
+		} else {
+			setTimeout( function(){
+				$this.checkMessages();
+			}, 5000 );
+		}
 	}
 });
 
@@ -412,9 +485,7 @@ var ChatWindowView = Backbone.View.extend({
 				}
 			});
 		}
-
 		var html = template( _.extend( { user_info: user_info }, $this.model.attributes ) );
-
 		this.$el.html( html );
 		return this;
 	},
@@ -633,7 +704,7 @@ function init() {
 		setTimeout(function(){
 			__removeLoader();
 			$('#login-screen').removeClass('loading');
-		}, 1000);
+		}, 2000);
 	}
 };
 
@@ -763,7 +834,7 @@ function loadFriends(callback) {
 function loadChatData( callback ) {
 	chats = new Chats();
 	chats.fetch({
-		success: function( response ){
+		success: function( response ) {
 			// RENDER AND ATTACH CHATS VIEW
 			var chatsView = new ChatsView({
 				el: '#chats-nav',
@@ -817,40 +888,47 @@ function setActiveChat( chatId ) {
 	});
 	
 	// GET CHATS LATEST MESSAGES OR ALL MESSAGES
-	var last_message_id = chatWindowView.model.get('last_message');
-	
-	$.ajax({
-		method: 'GET',
-		url: BaseUrl + '/conversation/' + chatId + '/message/limited?limit=50&offset=0'
-	}).then(
-		function( response ) {
-			var attrs = {
-				active: true
-			}
-			if ( response.length ) {
-				_.extend( attrs, {
-					messages: response.reverse(),
-					last_message: response[0].id
-				});
-			}
+	var last_message = chatWindowView.model.get('last_message');
 
-			chatWindowView.model.set( attrs );
+	if ( chatWindowView.model.get('last_message') ) {
+		$.ajax({
+			method: 'GET',
+			url: BaseUrl + '/conversation/' + chatWindowView.model.get('id') + '/new/' + chatWindowView.model.get('last_message' )
+		}).then(
+			function( response ) {
+				if ( response && response.length ) {
+					var messages = chatWindowView.model.get('messages').concat( response );
+					var last_message = _.last(messages).id;
+					chatWindowView.model.set({
+						active: true,
+						new_message: false,
+						messages: messages,
+						last_message: last_message
+					});
+				}
 
-			__switchPanes( 'chat' );
-			__removeLoader();
-		},
-		function( response ) {
-			if ( last_message_id ) {
-				chatWindowView.model.set({
-					messages: chatWindowView.model.get('messages'),
-				});
-			} else {
-				console.log( '%cErrors', 'background:red;', response );
+				__switchPanes( 'chat' );
+				__removeLoader();
+			},
+			function( response ) {
+				if ( last_message ) {
+					chatWindowView.model.set({
+						active: true,
+					});
+				} else {
+					console.log( '%cErrors', 'background:red;', response );
+				}
+				__switchPanes( 'chat' );
+				__removeLoader();
 			}
-			__switchPanes( 'chat' );
-			__removeLoader();
-		}
-	);
+		);
+	} else {
+		chatWindowView.model.set({
+			active: true,
+		});
+		__switchPanes( 'chat' );
+		__removeLoader();
+	}
 };
 
 
@@ -889,7 +967,7 @@ function setActiveProfile( user ) {
 	profileWindowView.model.set({ active: true });
 	
 	// GET CHATS LATEST MESSAGES OR ALL MESSAGES
-	var last_message_id = profileWindowView.model.get('last_message');
+	var last_message = profileWindowView.model.get('last_message');
 	
 	__removeLoader();
 };
@@ -1085,4 +1163,5 @@ $( document ).ready( function() {
 	__buildLoginShade( init );
 	$( '#login-btn' ).on( 'click', login );
 	$( '#mobile-menu-btn' ).on( 'click', __shiftView );
+
 });
