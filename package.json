@@ -4,7 +4,7 @@
   "description": "Front-end only chat app built on BackboneJS",
   "main": "index.js",
   "scripts": {
-  	"start": "node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sean Kiefer",
@@ -12,6 +12,7 @@
   "dependencies": {
     "backbone": "^1.3.3",
     "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
     "normalize.css": "^7.0.0"
   },
