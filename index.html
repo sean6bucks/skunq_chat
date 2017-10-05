@@ -13,35 +13,55 @@
 </head>
 <body>
 	
-	<div id="login-screen" class="shade">
-		<div class="panel">
-			<div class="panel-body text-center">
-				<h3>Hello Friend, whats your name?</h3>
-				<input type="text" id="login-input"/>
-				<button id="login-btn" class="btn btn-info">Login</button>
+	<div id="create-chat-modal" class="modal fade">
+		<div class="modal-dialog">
+			<div class="panel">
+				<div class="panel-body text-center no-select">
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<div id="chat-platform">
-		<section id="left">
+	<div id="login-screen" class="shade loading">
+		<div id="sk_loader" class="shade">
+			<div class="loader white"></div>
+		</div>
+		<canvas id="login-bars"></canvas>
+		<div id="login-panel" class="panel">
+			<div class="panel-body text-center">
+				<h3>Welcome to SKunq Chat</h3>
+				<div class="input-group">
+					<input type="text" placeholder="whats your name?" class="form-control" id="login-input"/>
+					<span class="input-group-btn">
+						<button id="login-btn" class="btn btn-info">Login</button>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="chat-platform" class="hide">
+		<section id="left" class="no-select">
 			<div id="user-block"></div>
 			<div id="list-block">
 				<ul class="nav nav-tabs" role="tablist">
 					<li class="nav-item active">
-						<a class="nav-link" data-toggle="tab" href="#friends-tab" role="tab">
-							<span class="glyphicon glyphicon-user"></span>
+						<a id="chats-tab" class="nav-link" data-toggle="tab" href="#chats-nav" role="tab">
+							<i class="fa fa-comments-o"></i>
 						</a>
 					</li>
-					<li class="nav-item">
-						<a class="nav-link" data-toggle="tab" href="#chats-tab" role="tab">
-							<span class="glyphicon glyphicon-th-list"></span>
+					<li class="nav-item ">
+						<a id="friends-tab" class="nav-link" data-toggle="tab" href="#friends-nav" role="tab">
+							<i class="fa fa-users"></i>
 						</a>
 					</li>
 				</ul>
 				<div id="list-panes" class="tab-content">
-					<div id="friends-pane" class="tab-pane show active fade in"></div>
-					<div id="chats-pane" class="tab-pane fade"></div>
+					<div id="chats-nav" class="tab-pane active fade in"></div>
+					<div id="friends-nav" class="tab-pane fade"></div>
+				</div>
+				<div id="new-chat-btn" class="btn" data-toggle="modal" data-target="#create-chat-modal">
+					<i class="fa fa-plus-square-o"></i> New Chat
 				</div>
 			</div>
 		</section>
@@ -68,35 +88,89 @@
 
 	<!-- TEMPLATES > TO BE MOVED TO EXTERNALS -->
 
-	<script id="chatTemplate" type="text/html">
-		<div class="chat-window">
-			<ul class="conversation">
-				<li class="user-text">
-					<span class="msg-text">Hey BUDDY!</span>
-				</li>
-				<li class="friend-text">
-					<span class="msg-text">Hey, Long time now speak!</span>
-				</li>
-			</ul>
-		</div>
-		<div class="message-bar">
-			<textarea class="message-input"></textarea>
-			<span class="send-btn btn">SEND</span>
-		</div>
-	</script>
+	<!-- Left Nav Column Templates -->
 
 	<script id="userBlockTemplate" type="text/html">
 		<span class="user-name"><%= display_name %></span>
 		<div class="user-avatar">
-			<img src="<%= avatar %>"/>
+			<% if ( avatar ) { %>
+				<img src="<%= avatar %>"/>
+			<% } else { %>
+				<img src="assets/images/no_avatar.png"/>
+			<% } %>
 		</div>
 	</script>
 
-	<script id="userProfileTemplate" type="text/html">
-		<div class="profile-wrapper">
-			<img class="profile-avatar" src="<%= avatar %>" />
-			<h3 class="text-center"><%= display_name %><span class="glyphicon glypicon-pencil"></span></h3>
-			<button class="btn btn-success">CHAT</button>
+	<script id="listItemTemplate" type="text/html">
+		<div class="item-avatar">
+			<% if ( avatar ) { %>
+				<img src="<%= avatar %>"/>
+			<% } else { %>
+				<img src="assets/images/no_avatar.png"/>
+			<% } %>
+		</div>
+		<span class="item-name"><%= display_name %></span>
+		<% if ( new_message ) { %>
+		<span class="item-badge"></span>
+		<% } %>
+	</script>
+
+	<!-- Create Modal Templates -->
+
+	<script id="selectUserTemplate" type="text/html">
+		<div class="user-select-avatar">
+			<% if ( avatar ) { %>
+			<img src="<%= avatar %>"/>
+			<% } else { %>
+			<img src="assets/images/no_avatar.png"/>
+			<% } %>
+		</div>
+		<p class="subtext text-center"><%= display_name %></p>
+		<% if ( selected ) { %>
+		<i class="fa fa-check-circle"></i>
+		<% } %>
+	</script>
+
+	<!-- Main Window Templates -->
+
+	<script id="chatWindowTemplate" type="text/html">
+		<div class="chat-window">
+			<ul class="conversation">
+			<% _.each( messages, function( message ) { %>
+				<% if ( message.senderId == current_user.get('id') ) { %>
+				<li class="user-text">
+				<% } else { %>
+				<li class="friend-text">
+				<% } %>
+					<p class="msg-text"><%= message.message %></p>
+					<% if ( message.timestamp ) { %>
+					<p class="subtext text-secondary">Sent at <%= message.timestamp %></p>
+					<% } %>
+				</li>
+			<% }); %>
+			</ul>
+		</div>
+		<div class="message-bar">
+			<input class="message-input"></input>
+			<span class="send-btn btn">Send</span>
+		</div>
+	</script>
+
+	<script id="profileWindowTemplate" type="text/html">
+		<div class="profile-window">
+			<div class="profile-avatar">
+				<% if ( avatar ) { %>
+				<img src="<%= avatar %>"/>
+				<% } else { %>
+				<img src="assets/images/no_avatar.png"/>
+				<% } %>
+			</div>
+			<h2 class="text-center"><%= display_name %></h2>
+			<% if ( id != current_user.get('id') ) { %>
+			<button id="profile-new-chat-btn" class="profile-btn btn btn-primary"><i class="fa fa-comments-o"></i> Chat with me</button>
+			<% } else { %>
+			<button id="profile-logout-btn" class="profile-btn btn btn-default"><i class="fa fa-hand-peace-o"></i> Logout</button>
+			<% } %>
 		</div>
 	</script>
 
