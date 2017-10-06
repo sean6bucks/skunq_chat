@@ -475,6 +475,7 @@ var ChatWindowView = Backbone.View.extend({
 		this.model.on( 'change:messages change:active', this.render, this );
 	},
 	render: function() {
+		if ( !this.model.get('active') ) return;
 		var $this = this;
 		var template = _.template( $('#chatWindowTemplate').html() );
 
@@ -596,7 +597,11 @@ var ProfileWindowView = Backbone.View.extend({
 				url: BaseUrl + '/conversation/' + id
 			}).then(
 				function( response ) {
-					var attrs = { id: id, new_message: false };
+					var attrs = { 
+						id: id, 
+						new_message: false,
+						messages: []
+					};
 					$this.model.set({ 
 						personal_chat_id: id 
 					});
@@ -606,7 +611,6 @@ var ProfileWindowView = Backbone.View.extend({
 					}, response );
 					
 					chats.add( attrs );
-					$('#create-chat-modal').modal('hide');
 					setActiveChat( attrs.id );
 				},
 				function() {
@@ -1165,16 +1169,6 @@ function __switchPanes( type ) {
 function __shiftView() {
 	$( '#chat-platform' ).toggleClass('shifted');
 	$( '#mobile-menu-btn' ).toggleClass('fa-rotate-180');
-};
-
-function __createAlert( options ) {
-	var message = options.message || 'Error',
-		type = options.type || 'danger';
-
-	var alert = $( '<div>', { class: "alert alert-dismissible fade show", role: 'alert' } );
-	$( alert ).addClass( 'alert-' + type );
-	alert.append( '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' );
-	$( 'body' ).append( alert );
 };
 
 
