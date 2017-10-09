@@ -18,6 +18,9 @@ h1, h2, h3, h4, h5, p {
 .text-secondary {
 	color: #ccc;
 }
+.text-danger {
+	color: #FB4F58 !important;
+}
 
 .subtext {
 	font-size: 12px;
@@ -381,7 +384,6 @@ h1, h2, h3, h4, h5, p {
 }
 
 .user-select-item .fa {
-	display: none;
 	position: absolute;
 	right: 6px;
 	top: 35px;
@@ -407,6 +409,14 @@ h1, h2, h3, h4, h5, p {
 	margin-top: 20px;
 }
 
+.user-select-errors: {
+	position: absolute;
+	top: 55px;
+	width: 100%;
+	text-align: center;
+	font-size: 10px;
+	color: #FB4F58;
+}
 
 /* ===== MAIN VIEW ===== */
 /* ===================== */
@@ -445,23 +455,20 @@ h1, h2, h3, h4, h5, p {
 	width: 100%;
 	padding: 0 10%;
 	margin-top: 15px;
-}
-.user-text {
-	text-align: left;
-}
-.friend-text {
 	text-align: right;
+}
+.conversation li.user-text {
+	text-align: left;
 }
 
 .conversation li .item-avatar {
 	position: absolute;
+	right: calc( 10% - 56px );
 }
-.user-text .item-avatar {
+.coversation li.user-text .item-avatar {
+	right: initial;
 	left: calc( 10% - 56px );
 	background-color: #FB4F58;
-}
-.friend-text .item-avatar {
-	right: calc( 10% - 56px );
 }
 
 .msg-text {
@@ -474,13 +481,11 @@ h1, h2, h3, h4, h5, p {
 	padding: 15px;
 	margin: 0;
 	text-align: left;
+	background-color: #9DFCD5;
 }
 
 .user-text .msg-text {
 	background-color: #f8f8f8;
-}
-.friend-text .msg-text {
-	background-color: #9DFCD5;
 }
 
 .message-bar {
@@ -668,24 +673,21 @@ h1, h2, h3, h4, h5, p {
 	}
 
 	.conversation li {
-		padding: 0 5px;
+		padding: 0 50px 0 5px;
 	}
-	.conversation .user-text {
-		padding-left: 50px
-	}
-	.conversation .friend-text {
-		padding-right: 50px
+	.conversation li.user-text {
+		padding: 0 5px 0 50px;
 	}
 
 	.conversation li .item-avatar {
 		margin: 7px;
-	}
-	.user-text .item-avatar {
-		left: 0;
-	}
-	.friend-text .item-avatar {
 		right: 0;
 	}
+	.conversation li.user-text .item-avatar {
+		left: 0;
+		right: initial;
+	}
+
 	.msg-text {
 		width: calc( 100% - 50px );
 	}

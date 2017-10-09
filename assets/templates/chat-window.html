@@ -1,0 +1,18 @@
+<div id="chat-pane" ng-controller="ChatController as self" class="tab-pane active">
+	<sk-loader ng-if="self.status.loading"></sk-loader>
+	<div class="chat-window">
+		<ul class="conversation">
+			<li ng-repeat="message in self.messages track by $index" ng-class="{ 'user-text': message.senderId == current_user.get('id')  }">
+				<div class="item-avatar">
+					<img src="{{ user_info[message.senderId].avatar ? user_info[message.senderId].avatar : 'assets/images/no_avatar.png'; }}"/>
+				</div>
+				<p class="msg-text">{{ message.message }}</p>
+				<p ng-if="message.timestamp" class="subtext text-secondary">Sent at {{ message.timestamp }}</p>
+			</li>
+		</ul>
+	</div>
+	<div class="message-bar">
+		<input class="message-input"></input>
+		<span class="send-btn btn">Send</span>
+	</div>
+</div>

@@ -13,178 +13,141 @@
 </head>
 <body>
 	
-	<div id="mobile-menu-btn"><i class="fa fa-chevron-circle-right"></i></div>
+	<div ng-app="Skunq">
+		<div ng-controller="MainController as main">
+			<div id="mobile-menu-btn"><i class="fa fa-chevron-circle-right"></i></div>
 
-	<div id="create-chat-modal" class="modal fade">
-		<div class="modal-dialog">
-			<div class="panel">
-				<div class="panel-body text-center no-select">
+			<div id="create-chat-modal" class="modal fade">
+				<div class="modal-dialog">
+					<sk-loader ng-if="main.status.saving"></sk-loader>
+					<div class="panel">
+						<div class="panel-body text-center no-select">
+							<h3>Create New Chat</h3>
+							<div class="user-select">
+								<ul>
+									<li ng-repeat="friend in main._tmp.chat.friends track by $index" ng-click="friend.selected = !friend.selected" class="user-select-item">
+										<div class="user-select-avatar">
+											<img ng-src="{{ friend.avatar ? friend.avatar : 'assets/images/no_avatar.png'; }}" />
+										</div>
+										<p class="subtext text-center">{{ friend.name }}</p>
+										<i ng-if="friend.selected" class="fa fa-check-circle"></i>
+									</li>
+								</ul>
+								<p ng-if="!main.errors.chat.users" class="text-center text-secondary">Select users to add to group</p>
+								<p ng-if="main.errors.chat.users" class="text-center text-secondary text-danger" ng-class="{ 'text-danger': main.errors.chat.users }">Please select at least one user</p>
+								<div id="create-chat-name" class="text-center" ng-class="{ 'has-error': main.errors.chat.name }">
+									<p>Chat Name</p>
+									<input class="form-control" ng-model="main._tmp.chat.name" ng-change="main.errors.chat.name=false;"/>
+								</div>
+								<button id="create-chat-btn" class="btn btn-primary" ng-click="saveChat()"><i class="fa fa-comments-o"></i> Create Chat</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
-	</div>
 
-	<div id="login-screen" class="shade loading">
-		<div id="sk_loader" class="shade">
-			<div class="loader white"></div>
-		</div>
-		<canvas id="login-bars"></canvas>
-		<div id="login-panel" class="panel">
-			<div class="panel-body text-center">
-				<h3>Welcome to SKunq Chat</h3>
-				<div class="input-group">
-					<input type="text" placeholder="what's your name?" class="form-control" id="login-input"/>
-					<span class="input-group-btn">
-						<button id="login-btn" class="btn btn-info">Login</button>
-					</span>
+			<div id="login-screen" class="shade loading" ng-init="buildLoginShade()">
+				<div ng-if="main.status.loading" id="sk_loader" class="shade">
+					<div class="loader white"></div>
+				</div>
+				<canvas id="login-bars"></canvas>
+				<div id="login-panel" class="panel">
+					<div class="panel-body text-center">
+						<h3>Welcome to SKunq Chat</h3>
+						<div class="input-group" ng-class="{ 'has-error': main.errors.login }">
+							<input type="text" placeholder="what's your name?" class="form-control" ng-model="main._tmp.username" id="login-input"/>
+							<span class="input-group-btn">
+								<button id="login-btn" class="btn btn-info" ng-click="main.errors={};login();">Login</button>
+							</span>
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
-	</div>
 
-	<div id="chat-platform" class="hide">
-		<section id="left" class="no-select">
-			<div id="user-block"></div>
-			<div id="list-block">
-				<ul class="nav nav-tabs" role="tablist">
-					<li class="nav-item active">
-						<a id="chats-tab" class="nav-link" data-toggle="tab" href="#chats-nav" role="tab">
-							<i class="fa fa-comments-o"></i>
-						</a>
-					</li>
-					<li class="nav-item ">
-						<a id="friends-tab" class="nav-link" data-toggle="tab" href="#friends-nav" role="tab">
-							<i class="fa fa-address-book-o"></i>
-						</a>
-					</li>
-				</ul>
-				<div id="list-panes" class="tab-content">
-					<div id="chats-nav" class="tab-pane active fade in"></div>
-					<div id="friends-nav" class="tab-pane fade"></div>
-				</div>
-				<div id="new-chat-btn" class="btn" data-toggle="modal" data-target="#create-chat-modal">
-					<i class="fa fa-plus-square-o"></i> New Chat
-				</div>
+			<div id="chat-platform" class="hide" ng-class="{ shifted: main.shifted }">
+				<section id="left" class="no-select">
+					<div id="user-block">
+						<span class="user-name">{{ user.name }}</span>
+						<div class="user-avatar">
+							<img ng-src="{{ user.avatar ? user.avatar : 'assets/images/no_avatar.png' }}">
+						</div>
+					</div>
+					<div id="list-block">
+						<ul class="nav nav-tabs" role="tablist">
+							<li class="nav-item active">
+								<a id="chats-tab" class="nav-link" data-toggle="tab" href="" data-target="#chats-nav" role="tab">
+									<i class="fa fa-comments-o"></i>
+								</a>
+							</li>
+							<li class="nav-item ">
+								<a id="friends-tab" class="nav-link" data-toggle="tab" href="" data-target="#friends-nav" role="tab">
+									<i class="fa fa-address-book-o"></i>
+								</a>
+							</li>
+						</ul>
+						<div id="list-panes" class="tab-content">
+							<div id="chats-nav" class="tab-pane active fade in">
+								<ul ng-if="active_chats.length" class="chats-list">
+									<li ng-repeat="chat in active_chats track by $index" class="chat-item list-item" ng-click="showChat( chat.id );">
+										<div class="item-avatar">
+											<img ng-src="{{ chat.avatar ? chat.avatar : 'assets/images/no_avatar.png' }}">
+										</div>
+										<span class="item-name">{{ chat.name }}</span>
+										<span ng-if="chat.new_message" class="item-badge"></span>
+									</li>
+								</ul>
+								<div ng-if="!active_chats.length" class="empty-list">
+									<h1 class="text-center"><i class="fa fa-comments-o"></i></h1>
+									<h6 class="text-center">No chats created yet.</h6>
+								</div>
+							</div>
+							<div id="friends-nav" class="tab-pane fade">
+								<ul ng-if="friends.length" class="friends-list">
+									<li ng-repeat="friend in friends track by $index" class="friend-item list-item" ng-class="{ active: friend.id == active_profile.id }" ng-click="showProfile( friend.id );">
+										<div class="item-avatar">
+											<img ng-src="{{ friend.avatar ? friend.avatar : 'assets/images/no_avatar.png' }}">
+										</div>
+										<span class="item-name">{{ friend.name }}</span>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div id="new-chat-btn" class="btn" ng-click="createTempChat()">
+							<i class="fa fa-plus-square-o"></i> New Chat
+						</div>
+					</div>
+				</section>
+				<section id="main" class="tab-content">
+					<ui-view></ui-view>
+				</section>
 			</div>
-		</section>
-		<section id="main" class="tab-content">
-			<div id="profile-pane" class="tab-pane"></div>
-			<div id="chat-pane" class="tab-pane active"></div>
-		</section>
+		</div>
+		</div>
 	</div>
 
 	<!-- ============================= -->
 	<!-- Libraries -->
 	<script src="node_modules/jquery/dist/jquery.min.js"></script>
-	<script src="node_modules/underscore/underscore-min.js"></script>
+	<script src="node_modules/lodash/lodash.min.js"></script>
 	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 	<script src="node_modules/async/dist/async.min.js"></script>
-	<script src="node_modules/handlebars/dist/handlebars.min.js"></script>
-
-	<script src="node_modules/backbone/backbone-min.js"></script>
+	<script src="node_modules/angular/angular.js"></script>
+	<script src="node_modules/@uirouter/angularjs/release/angular-ui-router.min.js"></script>
 	
 	<!-- Scripts -->
-	<script src="index.js"></script>
-	<script src="scripts/main.js"></script>
-	<script src="scripts/router.js"></script>
+	<!-- <script src="scripts/main.js"></script>
+	<script src="scripts/router.js"></script> -->
 
-	<!-- TEMPLATES > TO BE MOVED TO EXTERNALS -->
+	<script src="app.js"></script>
+	<script src="scripts/services/LocalService.js"></script>
 
-	<!-- Left Nav Column Templates -->
+	<script src="scripts/controllers/MainController.js"></script>
+	<script src="scripts/controllers/NavigationController.js"></script>
+	<script src="scripts/controllers/ChatController.js"></script>
+	<script src="scripts/controllers/ProfileController.js"></script>
 
-	<script id="userBlockTemplate" type="text/html">
-		<span class="user-name"><%= display_name %></span>
-		<div class="user-avatar">
-			<% if ( avatar ) { %>
-				<img src="<%= avatar %>"/>
-			<% } else { %>
-				<img src="assets/images/no_avatar.png"/>
-			<% } %>
-		</div>
-	</script>
-
-	<script id="listItemTemplate" type="text/html">
-		<div class="item-avatar">
-			<% if ( avatar ) { %>
-				<img src="<%= avatar %>"/>
-			<% } else { %>
-				<img src="assets/images/no_avatar.png"/>
-			<% } %>
-		</div>
-		<span class="item-name"><%= display_name %></span>
-		<% if ( new_message ) { %>
-		<span class="item-badge"></span>
-		<% } %>
-	</script>
-
-	<!-- Create Modal Templates -->
-
-	<script id="selectUserTemplate" type="text/html">
-		<div class="user-select-avatar">
-			<% if ( avatar ) { %>
-			<img src="<%= avatar %>"/>
-			<% } else { %>
-			<img src="assets/images/no_avatar.png"/>
-			<% } %>
-		</div>
-		<p class="subtext text-center"><%= display_name %></p>
-		<% if ( selected ) { %>
-		<i class="fa fa-check-circle"></i>
-		<% } %>
-	</script>
-
-	<!-- Main Window Templates -->
-
-	<script id="chatWindowTemplate" type="text/html">
-		<div class="chat-window">
-			<ul class="conversation">
-			<% _.each( messages, function( message ) { %>
-				<% if ( message.senderId == current_user.get('id') ) { %>
-				<li class="user-text">
-				<% } else { %>
-				<li class="friend-text">
-				<% } %>
-					<div class="item-avatar">
-					<% if ( user_info[message.senderId] && 
-							user_info[message.senderId].avatar ) { %>
-						<img src="<%= user_info[message.senderId].avatar %>"/>
-					<% } else { %>
-						<img src="assets/images/no_avatar.png"/>
-					<% } %>
-					</div>
-					<p class="msg-text"><%= message.message %></p>
-					<% if ( message.timestamp ) { %>
-					<p class="subtext text-secondary">Sent at <%= message.timestamp %></p>
-					<% } %>
-				</li>
-			<% }); %>
-			</ul>
-		</div>
-		<div class="message-bar">
-			<input class="message-input"></input>
-			<span class="send-btn btn">Send</span>
-		</div>
-	</script>
-
-	<script id="profileWindowTemplate" type="text/html">
-		<div class="profile-window">
-			<div class="profile-avatar">
-				<% if ( avatar ) { %>
-				<img src="<%= avatar %>"/>
-				<% } else { %>
-				<img src="assets/images/no_avatar.png"/>
-				<% } %>
-			</div>
-			<h2 class="text-center"><%= display_name %></h2>
-			<% if ( id != current_user.get('id') ) { %>
-			<button id="profile-new-chat-btn" class="profile-btn btn btn-primary"><i class="fa fa-comments-o"></i> Chat with me</button>
-			<% } else { %>
-			<button id="profile-logout-btn" class="profile-btn btn btn-default"><i class="fa fa-hand-peace-o"></i> Logout</button>
-			<% } %>
-		</div>
-	</script>
-
-	<!-- END TEMPLATES -->
+	<script src="scripts/directives/loginShade.js"></script>
+	<script src="scripts/directives/skLoader.js"></script>
 
 </body>
 </html>
