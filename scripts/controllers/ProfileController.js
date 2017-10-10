@@ -1,26 +1,68 @@
 'use strict'
 
-skunq.controller( 'ProfileController', [ '$scope', '$rootScope', '$state', '$stateParams', '$http', '$timeout', function( $scope, $rootScope, $state, $stateParams, $http, $timeout ) {
-	var $this = this;
-	this.status = {
+skunq.controller( 'ProfileController', [ '$scope', '$state', '$stateParams', '$timeout', function( $scope, $state, $stateParams, $timeout ) {
+	var self = this;
+	var main = $scope.main;
+
+	self.status = {
 		loading: true
 	};
-	this.baseUrl = 'http://assignment.bunq.com';
+	self.baseUrl = 'http://assignment.bunq.com';
 
-	// SCOPE BOUND FUNCTIONS ========
+	// INIT CONTROLLER =======
 
-	$scope.logout = function() {
+	self.init = function() {
+		self.status.loading = true;
+		_.extend( self, {
+			current_user: main.current_user,
+			friends: main.friends
+		});
+
+		// MAKE SURE USER IS LOGGED IN
+		if ( !self.current_user || !self.current_user.id ) self.logout();
+
+		// SET PROFILE AS CURRENT USER IF IDs MATCH
+		if ( $stateParams.id == self.current_user.id ) {
+			self.profile = self.current_user;
+			self.status.loading = false;
+		// ELSE IF FRIENDS ARRAY LOADED > CHECK FRIENDS FOR INFO
+		} else if ( self.friends && self.friends.length ) {
+			self.profile = _.find( self.friends, { id: $stateParams.id } );
+			self.status.loading = false;
+		// ELSE FETCH FRIENDS > THEN GET PROFILE INFO
+		} else {
+			self.loadFriends( function() {
+				self.profile = _.find( self.friends, { id: $stateParams.id } );
+				$timeout(function(){
+					$scope.$apply();
+					self.status.loading = false;
+				});
+			});
+		}
+	};
+
+	// CREATE NEW CHAT ON MAIN SCOPE ==========
+
+	self.createChat = function() {
+		self.status.loading = true;
+		$scope.$emit('create-chat');
+	};
+
+	// TRIGGER LOGOUT ON MAIN SCOPE ===========
+
+	self.logout = function() {
 		$scope.$emit('logout');
 	};
 
-	//  LOAD DATA FUNCTIONS =========
-	this.loadFriends = function( callback ) {
-		var endpoint = $this.baseUrl + '/users';
-		$http.get( endpoint )
+	//  LOAD DATA FUNCTIONS ====================
+
+	self.loadFriends = function( callback ) {
+		var endpoint = self.baseUrl + '/users';
+		$.get( endpoint )
 			.then(
 				function( response ) {
 					// SAVE RESPONSE TO FRIENDS LIST
-					$rootScope.friends = _.map( response.data, function( user ) {
+					self.friends = _.map( response, function( user ) {
 						var attrs = _.extend({
 							name: '',
 							avatar: '../../assets/images/avatars/' + user.id + '.jpg',
@@ -33,7 +75,7 @@ skunq.controller( 'ProfileController', [ '$scope', '$rootScope', '$state', '$sta
 						return attrs;
 					});
 
-					if ( _.isFunction(callback) ) {
+					if ( _.isFunction( callback ) ) {
 						callback();
 					}
 				},
@@ -43,22 +85,9 @@ skunq.controller( 'ProfileController', [ '$scope', '$rootScope', '$state', '$sta
 			);
 	};
 
-	// SET PROFILE AS CURRENT USER IF IDs MATCH
-	if ( $stateParams.id == $scope.current_user.id ) {
-		this.profile = $scope.current_user;
-		$this.status.loading = false;
-	// ELSE IF GLOBAL FRIENDS ARRAY LOADED CHECK FRIENDS
-	} else if ( $rootScope.friends && $rootScope.friends.length ) {
-		this.profile = _.find( $rootScope.friends, { id: $stateParams.id } );
-		$this.status.loading = false;
-	// ELSE FETCH FRIENDS
-	} else {
-		this.loadFriends( function() {
-			$this.profile = _.find( $rootScope.friends, { id: $stateParams.id } );
-			$timeout(function(){
-				$scope.$apply();
-				$this.status.loading = false;
-			});
-		});
-	}
+	$scope.$on( 'destroy', function(){
+		self.status.loading = false;
+	});
+
+	self.init();
 }]);

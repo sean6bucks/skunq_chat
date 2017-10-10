@@ -39,14 +39,14 @@
 									<p>Chat Name</p>
 									<input class="form-control" ng-model="main._tmp.chat.name" ng-change="main.errors.chat.name=false;"/>
 								</div>
-								<button id="create-chat-btn" class="btn btn-primary" ng-click="saveChat()"><i class="fa fa-comments-o"></i> Create Chat</button>
+								<button id="create-chat-btn" class="btn btn-primary" ng-click="main.saveChat()"><i class="fa fa-comments-o"></i> Create Chat</button>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div id="login-screen" class="shade loading" ng-init="buildLoginShade()">
+			<div id="login-screen" class="shade loading" ng-init="main.buildLoginShade()">
 				<div ng-if="main.status.loading" id="sk_loader" class="shade">
 					<div class="loader white"></div>
 				</div>
@@ -57,7 +57,7 @@
 						<div class="input-group" ng-class="{ 'has-error': main.errors.login }">
 							<input type="text" placeholder="what's your name?" class="form-control" ng-model="main._tmp.username" id="login-input"/>
 							<span class="input-group-btn">
-								<button id="login-btn" class="btn btn-info" ng-click="main.errors={};login();">Login</button>
+								<button id="login-btn" class="btn btn-info" ng-click="main.errors={};main.login();">Login</button>
 							</span>
 						</div>
 					</div>
@@ -66,10 +66,10 @@
 
 			<div id="chat-platform" class="hide" ng-class="{ shifted: main.shifted }">
 				<section id="left" class="no-select">
-					<div id="user-block">
-						<span class="user-name">{{ user.name }}</span>
+					<div id="user-block" ng-click="main.showProfile( main.current_user.id )">
+						<span class="user-name">{{ main.current_user.name }}</span>
 						<div class="user-avatar">
-							<img ng-src="{{ user.avatar ? user.avatar : 'assets/images/no_avatar.png' }}">
+							<img ng-src="{{ main.current_user.avatar ? main.current_user.avatar : 'assets/images/no_avatar.png' }}">
 						</div>
 					</div>
 					<div id="list-block">
@@ -87,8 +87,11 @@
 						</ul>
 						<div id="list-panes" class="tab-content">
 							<div id="chats-nav" class="tab-pane active fade in">
-								<ul ng-if="active_chats.length" class="chats-list">
-									<li ng-repeat="chat in active_chats track by $index" class="chat-item list-item" ng-click="showChat( chat.id );">
+								<ul ng-if="main.active_chats.length" class="chats-list">
+									<li ng-repeat="chat in main.active_chats track by $index" 
+										class="chat-item list-item" 
+										ng-class="{ active: chat.active }"
+										ng-click="main.showChat( chat.id );">
 										<div class="item-avatar">
 											<img ng-src="{{ chat.avatar ? chat.avatar : 'assets/images/no_avatar.png' }}">
 										</div>
@@ -96,14 +99,17 @@
 										<span ng-if="chat.new_message" class="item-badge"></span>
 									</li>
 								</ul>
-								<div ng-if="!active_chats.length" class="empty-list">
+								<div ng-if="!main.active_chats.length" class="empty-list">
 									<h1 class="text-center"><i class="fa fa-comments-o"></i></h1>
 									<h6 class="text-center">No chats created yet.</h6>
 								</div>
 							</div>
 							<div id="friends-nav" class="tab-pane fade">
-								<ul ng-if="friends.length" class="friends-list">
-									<li ng-repeat="friend in friends track by $index" class="friend-item list-item" ng-class="{ active: friend.id == active_profile.id }" ng-click="showProfile( friend.id );">
+								<ul ng-if="main.friends.length" class="friends-list">
+									<li ng-repeat="friend in main.friends track by $index" 
+										class="friend-item list-item" 
+										ng-class="{ active: friend.active }" 
+										ng-click="main.showProfile( friend.id );">
 										<div class="item-avatar">
 											<img ng-src="{{ friend.avatar ? friend.avatar : 'assets/images/no_avatar.png' }}">
 										</div>
@@ -112,7 +118,7 @@
 								</ul>
 							</div>
 						</div>
-						<div id="new-chat-btn" class="btn" ng-click="createTempChat()">
+						<div id="new-chat-btn" class="btn" ng-click="main.createTempChat()">
 							<i class="fa fa-plus-square-o"></i> New Chat
 						</div>
 					</div>
@@ -125,29 +131,9 @@
 		</div>
 	</div>
 
-	<!-- ============================= -->
-	<!-- Libraries -->
-	<script src="node_modules/jquery/dist/jquery.min.js"></script>
-	<script src="node_modules/lodash/lodash.min.js"></script>
-	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-	<script src="node_modules/async/dist/async.min.js"></script>
-	<script src="node_modules/angular/angular.js"></script>
-	<script src="node_modules/@uirouter/angularjs/release/angular-ui-router.min.js"></script>
-	
-	<!-- Scripts -->
-	<!-- <script src="scripts/main.js"></script>
-	<script src="scripts/router.js"></script> -->
 
-	<script src="app.js"></script>
-	<script src="scripts/services/LocalService.js"></script>
-
-	<script src="scripts/controllers/MainController.js"></script>
-	<script src="scripts/controllers/NavigationController.js"></script>
-	<script src="scripts/controllers/ChatController.js"></script>
-	<script src="scripts/controllers/ProfileController.js"></script>
-
-	<script src="scripts/directives/loginShade.js"></script>
-	<script src="scripts/directives/skLoader.js"></script>
+	<script src="dist/libraries.js"></script>
+	<script src="dist/app.js"></script>
 
 </body>
 </html>

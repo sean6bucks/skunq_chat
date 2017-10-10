@@ -5,7 +5,7 @@
 			<img ng-src="{{ self.profile.avatar ? self.profile.avatar : 'assets/images/no_avatar.png' ; }}"/>
 		</div>
 		<h2 class="text-center">{{ self.profile.name }}</h2>
-		<button ng-if="self.profile.id != current_user.id" id="profile-new-chat-btn" class="profile-btn btn btn-primary"><i class="fa fa-comments-o"></i> Chat with me</button>
-		<button ng-if="self.profile.id == current_user.id" id="profile-logout-btn" class="profile-btn btn btn-default" ng-click="logout()"><i class="fa fa-hand-peace-o"></i> Logout</button>
+		<button ng-if="self.profile.id != self.current_user.id" id="profile-new-chat-btn" class="profile-btn btn btn-primary" ng-click="self.createChat()"><i class="fa fa-comments-o"></i> Chat with me</button>
+		<button ng-if="self.profile.id == self.current_user.id" id="profile-logout-btn" class="profile-btn btn btn-default" ng-click="self.logout()"><i class="fa fa-hand-peace-o"></i> Logout</button>
 	</div>
 </div>

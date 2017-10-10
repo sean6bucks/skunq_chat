@@ -151,6 +151,7 @@ h1, h2, h3, h4, h5, p {
 	z-index: 50;
 	background: #FFF;
 	border-right: 1px solid #ccc;
+	overflow: hidden;
 }
 
 #main {
@@ -189,7 +190,7 @@ h1, h2, h3, h4, h5, p {
 }
 
 .loading #login-panel {
-	transform: translate( -50%, 300%);
+	transform: translate( -50%, 500%);
 }
 
 #login-panel h3 {
@@ -323,9 +324,12 @@ h1, h2, h3, h4, h5, p {
     right: 10px;
     height: 10px;
     width: 10px;
-    margin: 16px 0;
+    margin: 19px 0;
     background: #16B6F9;
     border-radius: 50%;
+}
+.list-item:hover .item-badge {
+	background: #fff;
 }
 
 
@@ -455,19 +459,19 @@ h1, h2, h3, h4, h5, p {
 	width: 100%;
 	padding: 0 10%;
 	margin-top: 15px;
-	text-align: right;
+	text-align: left;
 }
 .conversation li.user-text {
-	text-align: left;
+	text-align: right;
 }
 
 .conversation li .item-avatar {
 	position: absolute;
-	right: calc( 10% - 56px );
-}
-.coversation li.user-text .item-avatar {
-	right: initial;
 	left: calc( 10% - 56px );
+}
+.conversation li.user-text .item-avatar {
+	left: initial;
+	right: calc( 10% - 56px );
 	background-color: #FB4F58;
 }
 
@@ -481,11 +485,11 @@ h1, h2, h3, h4, h5, p {
 	padding: 15px;
 	margin: 0;
 	text-align: left;
-	background-color: #9DFCD5;
+	background-color: #f8f8f8;
 }
 
 .user-text .msg-text {
-	background-color: #f8f8f8;
+	background-color: #9DFCD5;
 }
 
 .message-bar {
@@ -532,6 +536,10 @@ h1, h2, h3, h4, h5, p {
 	padding: 0 10px;
 }
 
+.send-btn.disabled {
+	opacity: 1;
+	color: #ddd;
+}
 
 /* Profile Page */
 

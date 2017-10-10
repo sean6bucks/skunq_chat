@@ -2,9 +2,9 @@
 	<sk-loader ng-if="self.status.loading"></sk-loader>
 	<div class="chat-window">
 		<ul class="conversation">
-			<li ng-repeat="message in self.messages track by $index" ng-class="{ 'user-text': message.senderId == current_user.get('id')  }">
+			<li ng-repeat="message in self.chat.messages track by $index" ng-class="{ 'user-text': message.senderId == self.current_user.id  }">
 				<div class="item-avatar">
-					<img src="{{ user_info[message.senderId].avatar ? user_info[message.senderId].avatar : 'assets/images/no_avatar.png'; }}"/>
+					<img ng-src="{{ self.users_info[ message.senderId ].avatar ? self.users_info[ message.senderId ].avatar : 'assets/images/no_avatar.png'; }}"/>
 				</div>
 				<p class="msg-text">{{ message.message }}</p>
 				<p ng-if="message.timestamp" class="subtext text-secondary">Sent at {{ message.timestamp }}</p>
@@ -12,7 +12,7 @@
 		</ul>
 	</div>
 	<div class="message-bar">
-		<input class="message-input"></input>
-		<span class="send-btn btn">Send</span>
+		<input class="message-input" ng-model="self._tmp.message"></input>
+		<span class="send-btn btn" ng-class="{ disabled: !self._tmp.message }" ng-click="self.sendMessage();">Send</span>
 	</div>
 </div>
