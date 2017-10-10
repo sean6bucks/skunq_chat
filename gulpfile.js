@@ -12,7 +12,17 @@ gulp.task( "libraries", function () {
 		'node_modules/@uirouter/angularjs/release/angular-ui-router.min.js'
 	])
 	.pipe( concat( 'libraries.js') )
-	.pipe( gulp.dest( './dist/'));
+	.pipe( gulp.dest( './dist/') );
+});
+
+gulp.task( "styles", function() {
+	return gulp.src([
+		'node_modules/normalize.css/normalize.css',
+		'node_modules/bootstrap/dist/css/bootstrap.min.css',
+		'assets/css/sk_styles.css'
+	])
+	.pipe( concat( 'styles.css' ) )
+	.pipe( gulp.dest( './dist/') );
 });
 
 gulp.task( "scripts", function () {
@@ -32,11 +42,10 @@ gulp.task( "minify", function () {
 	gulp.src('dist/app.js')
 	.pipe( minify({
 		ext:{
-			src:'.min',
-			min:'.js'
+			min: '.min.js'
 		}
 	}))
 	.pipe( gulp.dest('dist') )
 });
 
-gulp.task( "build", [ 'libraries', 'scripts', 'minify' ]);
+gulp.task( "build", [ 'libraries', 'scripts', 'styles', 'minify' ]);
