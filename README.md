@@ -1,7 +1,11 @@
 # skunq_chat
 Front-end only chat app built on Backbone
 
-Current Set up is just to open index locally
+#### Setup to run locally:
 
-1). Run npm install from the root browser
-2). After Install just open index.html in browser
+1). From the root folder run ``` npm install ```
+
+2). After install completes, run a lite server ``` npm start ```
+
+3). You are ready to go.
+

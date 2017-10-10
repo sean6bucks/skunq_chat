@@ -4,7 +4,8 @@
   "description": "Front-end only chat app built on BackboneJS",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "npm run lite",
+    "lite": "lite-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sean Kiefer",
@@ -24,6 +25,9 @@
     "url": "git+https://github.com/sean6bucks/skunq_chat.git"
   },
   "devDependencies": {
-    "gulp-wrap-commonjs": "^0.1.14"
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify": "^1.0.0",
+    "lite-server": "^2.3.0"
   }
 }
